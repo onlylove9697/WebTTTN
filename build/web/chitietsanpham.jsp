@@ -14,6 +14,7 @@
         <script src="js/myjs.js"></script>
         <link href="css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
         <link rel="stylesheet" href="css/dashicons.min.css" type="text/css">
+
     </head>
 
     <body>
@@ -151,33 +152,20 @@
                             <li><span>Tính năng nổi bật:</span><div style="color: blue;"><%=tskt.getTINHNANGNOIBAT_TSKT()%></div></li>
                         </ul>
                         <br>
+
+                        <!--Modal-->
+                        <jsp:include page="ModalShow.jsp"></jsp:include>
+
                         <div style="font-size: 25px;">Đã có <span style="color: blue;"><%=SystemHung.CountComment(MADT_DT)%></span> người đánh giá về sản phẩm</div>
                         <div style="font-size: 20px;">Phần trăm người đánh giá khách quan về sản phẩm : <span style="color: red;"><%=SystemHung.TinhPhanTram(MADT_DT.toString().trim())%></span> %</div>
                     </div>
                 </div>
             </div>
 
-            <div style="border: 1px solid black;"></div>
 
-            <form  action="CmtServlet"  method="POST">
-                <div >
-                    <div style="text-align: center; font-size: 30px; margin-top: 10px;">Để lại ý kiến của bạn về sản phẩm</div>
-                    <input type="hidden" value="<%=MADT_DT%>" name="txtMaDT"/>
-                    <br>
-                    <label>E-mail <label style="margin-left: 20px; margin-bottom: 10px;"> :</label> </label>
-                    <input style="width: 400px; margin-left: 25px;margin-bottom: 10px;" id="txtEmail" name="txtEmail" placeholder="Mời Bạn nhập e-mail..." rows="4" cols="90" type="text">
-                    <br>
-                    <label>Tên <label style="margin-left: 37px;margin-bottom: 10px;"> :</label></label>
-                    <input style="width: 400px; margin-left: 25px;margin-bottom: 10px;" id="txtName" name="txtName" placeholder="Mời Bạn nhập tên..." rows="4" cols="90" type="text">
-                    <textarea style="margin-bottom: 10px;" id="txtComment" name="txtComment" placeholder="Mời Bạn để lại bình luận..." rows="4" cols="180" ></textarea>
-                    <!--<a href="CmtServlet" onclick="return  comment()"  style="margin-left: 1035px; width: 100px; margin-bottom: 30px;" class="button1">Gửi</a>-->
-                    <input style="margin-bottom: 30px;margin-left: 1035px; width: 100px;" type="submit" onclick="return comment()" value="Bình luận" />
-                </div>
-
-
-            </form>
         </div>
 
+        <jsp:include page="Comment.jsp"></jsp:include>
         <jsp:include page="footer.jsp"></jsp:include>
 
 

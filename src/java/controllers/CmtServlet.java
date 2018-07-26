@@ -29,9 +29,9 @@ public class CmtServlet extends HttpServlet {
     CommentDAO cmDAO = new CommentDAO();
 
     // khai báo biến 
-
-    public static ArrayList<String> Terms ;
-    public static ArrayList<Double> TermValues ;
+    public static ArrayList<String> Terms;
+    public static ArrayList<String> Temp;
+    public static ArrayList<Double> TermValues;
 
     public static ArrayList<Double> G; // list chứa các trọng số khen và chê
     public static ArrayList<Double> N; // list chứa các trọng số chê
@@ -98,9 +98,9 @@ public class CmtServlet extends HttpServlet {
     }
 
     // Hàm kết luận khen/chê
-    public static int summary(){
-        
-        int str ;
+    public static int summary() {
+
+        int str;
         double cosinNG = (double) Math.round(coSin(N) * 1000) / 1000;
         double cosinPG = (double) Math.round(coSin(P) * 1000) / 1000;
         if (cosinPG == cosinNG) {
@@ -114,59 +114,78 @@ public class CmtServlet extends HttpServlet {
         }
 
         //str += " | cosin(N,G)=" + cosinNG + " | consin(P,G)=" + cosinPG;
-
         //System.out.println("Summary : "+str);
         return str;
     }
 
     // Hàm rút trích
     public static String extracted(String textInput) throws Exception {
-        String strTextOut = "";
-        String getTu = "";
-        Double getTS = 0.0;
+        //Khai báo biến
+        String strTextOut = ""; //chứa kết quả trả về
+        String[] tapCau; // chứa danh sách các câu
+        String[] tu; // chứa danh sách các từ
+        String[] tapCumTu; // chứa danh sách các cụm từ
+
+        String Term;
+
+        //khởi tạo 
+        Terms = new ArrayList();
+        Temp = new ArrayList();
+        TermValues = new ArrayList();
+
+        //chuyển dấu câu
         textInput = textInput.replace('!', '.'); // chuyển dấu kết ! -> .
         textInput = textInput.replace('?', '.'); // ? -> .
-        //System.out.println(textInput);
-        String[] tapCauHoanHao = textInput.split("\\."); // tách câu
-        String[] tu;
-        String[] tapCumTu;
-        Terms = new ArrayList();
-        TermValues = new ArrayList();
-        
-        for (String cauHoanHao : tapCauHoanHao) {
 
-            cauHoanHao = cauHoanHao.replace(';', ','); // chuyển dấu kết ; -> ,
+        //tách câu
+        tapCau = textInput.split("\\."); // tách câu
 
-            tapCumTu = cauHoanHao.split("\\,"); // Tách câu
-
+        for (String Cau : tapCau) {
+            Cau = Cau.replace(';', ','); // chuyển dấu kết ; -> ,
+            tapCumTu = Cau.split("\\,"); // Tách câu
             for (String cumTu : tapCumTu) {
-                tu = cumTu.split(" ");
+                tu = cumTu.split(" ");//tách từng từ từ cumtu[] đưa vào danh sách tu[]
+
+                //khai báo biến dừng cho tách từ
                 int start = 0;
                 int stop = tu.length;
                 boolean isStop = false;
-                String Term = "";
 
-                //JDBC.mo("Emo_Dictionary");
+                //kết nối SQL-Server
+                //JDBC.mo("Emo_Test");
                 while (isStop == false && stop >= 0) {
                     Term = "";
+
                     for (int i = start; i < stop; i++) {
                         Term += tu[i] + " ";
-                    }
 
-                    ArrayList<TuCamXuc> ArrTcx = TuCamXuc_DAO.List_TCX(Term.trim());
-                    for (int i = 0; i < ArrTcx.size(); i++) {
-                        TuCamXuc Emo = ArrTcx.get(i);
-                        getTu = Emo.getTuCamXuc();
-                        getTS = Emo.getTrongSo();
                     }
-                    if (getTu != "") {
-                        Terms.add(getTu.trim());
-                        TermValues.add(getTS);
-                        strTextOut += getTu + ": " + getTS + " | ";
+                    int ret = CommentDAO.TimTu(Term);
+
+                    if (ret != 0) {
+                        if (ret == 1) {// từ cảm xúc
+
+                            Temp.add(Term.trim());
+                        } else// từ khía cạnh
+                        {
+                            for (String t : Temp) {
+
+                                TermValues.add(CommentDAO.GetTrongSo(Term.trim(), t));
+                                //System.out.println(Term.trim());
+                                Terms.add(t.trim() + "|" + Term.trim());
+                            }
+                            // thêm ngữ nghĩa vào mảng cụm từ và gáng trọng số tạm -999
+                            //Terms.add(Term.trim());
+                            //TermValues.add(-999.0);
+                            // làm mới list tạm để bắt đầu lại 1 cấu trúc câu mới
+                            Temp = new ArrayList();
+
+                        }
+
                         if (start == 0) {
                             isStop = true;
                         } else {
-                            stop = start - 1;
+                            stop = start;
                             start = 0;
                         }
                     } else {
@@ -177,14 +196,16 @@ public class CmtServlet extends HttpServlet {
                             start++;
                         }
                     }
-                    getTu = "";
-                    getTS = 0.0;
+
                 }
             }
-            
         }
-       return strTextOut;
+//
+//        for (int i = 0; i < Terms.size(); i++) {
+//            strTextOut += Terms.get(i) + "|" + TermValues.get(i) + "\n";
+//        }
 
+        return strTextOut;
     }
 
     @Override
